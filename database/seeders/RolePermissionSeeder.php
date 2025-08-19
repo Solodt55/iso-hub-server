@@ -16,64 +16,51 @@ class RolePermissionSeeder extends Seeder
      */
     public function run()
     {
-        $permissions = [
-            [
-                'group_name' => 'team_member',
-                'permissions' => [
-                    'team_member.add',
-                    'team_member.edit',
-                    'team_member.delete',
-                    'team_member.view',
-                ]
-            ],
-            [
-                'group_name' => 'vendor',
-                'permissions' => [
-                    'vendor.add',
-                    'vendor.edit',
-                    'vendor.delete',
-                    'vendor.view',
-                ]
-            ],
-            [
-                'group_name' => 'user',
-                'permissions' => [
-                    'user.add',
-                    'user.edit',
-                    'user.delete',
-                    'user.view'
-                ]
-            ],
-            [
-                'group_name' => 'secure_file_uploads',
-                'permissions' => [
-                    'secure_file_uploads.view'
-                ]
-            ]
+        // Add all permissions here, including jotform.view and any others you need
+        $allPermissions = [
+            // Team Member
+            'team_member.add', 'team_member.edit', 'team_member.delete', 'team_member.view',
+            // Vendor
+            'vendor.add', 'vendor.edit', 'vendor.delete', 'vendor.view',
+            // User
+            'user.add', 'user.edit', 'user.delete', 'user.view',
+            // Secure File Uploads
+            'secure_file_uploads.view',
+            // JotForm
+            'jotform.view', 'jotform.create', 'jotform.edit', 'jotform.delete',
+            // Add more permissions as needed
         ];
+
+        $admin = User::where('role_id', '1')->first();
+        $roleSuperAdmin = $this->maybeCreateSuperAdminRole($admin);
+
+        // Create and Assign All Permissions
+        foreach ($allPermissions as $permName) {
+            $permissionExist = Permission::where('name', $permName)->first();
+            if (is_null($permissionExist)) {
+                $permission = Permission::create([
+                    'name' => $permName,
+                    'group_name' => 'all',
+                    'guard_name' => 'web'
+                ]);
+                $roleSuperAdmin->givePermissionTo($permission);
+                $permission->assignRole($roleSuperAdmin);
+            } else {
+                $roleSuperAdmin->givePermissionTo($permissionExist);
+                $permissionExist->assignRole($roleSuperAdmin);
+            }
+        }
+
+        // Assign super admin role permission to superadmin user
+        if ($admin) {
+            $admin->assignRole($roleSuperAdmin);
+        }
 
          // Do same for the admin guard for tutorial purposes.
          $admin = User::where('role_id', '1')->first();
          $roleSuperAdmin = $this->maybeCreateSuperAdminRole($admin);
  
-         // Create and Assign Permissions
-         for ($i = 0; $i < count($permissions); $i++) {
-             $permissionGroup = $permissions[$i]['group_name'];
-             for ($j = 0; $j < count($permissions[$i]['permissions']); $j++) {
-                 $permissionExist = Permission::where('name', $permissions[$i]['permissions'][$j])->first();
-                 if (is_null($permissionExist)) {
-                     $permission = Permission::create(
-                         [
-                             'name' => $permissions[$i]['permissions'][$j],
-                             'group_name' => $permissionGroup,
-                             'guard_name' => 'web'
-                         ]
-                     );
-                     $roleSuperAdmin->givePermissionTo($permission);
-                     $permission->assignRole($roleSuperAdmin);
-                 }
-             }
-         }
+    // ...existing code...
  
          // Assign super admin role permission to superadmin user
 
@@ -98,10 +85,10 @@ class RolePermissionSeeder extends Seeder
             $admin           = new User();
             $admin->first_name     = "superadmin";
             $admin->last_name     = "superadmin";
-            $admin->email    = "superadmin@gmail.com";
+            $admin->email    = "dev@jacc.app";
             $admin->phone    = "4343434343";
             $admin->role_id = "1";
-            $admin->password = Hash::make('12345678');
+            $admin->password = Hash::make('Dev123!');
             $admin->save();
         }
 
