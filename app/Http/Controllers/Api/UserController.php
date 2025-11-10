@@ -406,12 +406,12 @@ class UserController extends Controller
 
     public function getUsers(Request $request)
     {
-        $permission = 'user.view';
-        $userPermission = $this->DashboardService->checkPermission($permission);
+        // $permission = 'user.view';
+        // $userPermission = $this->DashboardService->checkPermission($permission);
 
-        if (!empty($userPermission)) {
-            return $userPermission;
-        }
+        // if (!empty($userPermission)) {
+        //     return $userPermission;
+        // }
 
         $query = User::query();
 

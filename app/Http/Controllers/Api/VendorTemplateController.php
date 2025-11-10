@@ -86,17 +86,44 @@ class VendorTemplateController extends Controller
 
     public function storeVendorTemplates(Request $request)
     {
-        $vendors = json_decode($request->input('vendors'), true);
+        // Build vendors array from FormData fields
+        $vendors = [];
+        $index = 0;
+        while (true) {
+            $prefix = "vendors.$index.";
+            $vendor_name = $request->input($prefix . 'vendor_name');
+            // If no vendor_name, break (end of list)
+            if ($vendor_name === null) {
+                break;
+            }
+            $vendor = [
+                'user_id' => $request->input($prefix . 'user_id'),
+                'vendor_type' => $request->input($prefix . 'vendor_type'),
+                'vendor_name' => $vendor_name,
+                'vendor_email' => $request->input($prefix . 'vendor_email'),
+                'vendor_phone' => $request->input($prefix . 'vendor_phone'),
+                'login_url' => $request->input($prefix . 'login_url'),
+                'support_info' => $request->input($prefix . 'support_info'),
+                'notes' => $request->input($prefix . 'notes'),
+                'rep_name' => $request->input($prefix . 'rep_name'),
+                'rep_email' => $request->input($prefix . 'rep_email'),
+                'rep_phone' => $request->input($prefix . 'rep_phone'),
+                'description' => $request->input($prefix . 'description'),
+                'logo_file' => $request->file($prefix . 'logo_url'),
+                'logo_url' => $request->input($prefix . 'logo_url'),
+            ];
+            $vendors[] = $vendor;
+            $index++;
+        }
 
-        if (!is_array($vendors)) {
-            return response()->json(['error' => 'Invalid vendors data'], 400);
+        if (empty($vendors)) {
+            return response()->json(['error' => 'No vendors data found'], 400);
         }
 
         $errors = [];
 
         foreach ($vendors as $index => $vendor) {
             $vendorName = $vendor['vendor_name'] ?? null;
-
             if (!$vendorName) {
                 $errors[] = "Vendor name is required at index $index.";
                 continue;
@@ -107,7 +134,6 @@ class VendorTemplateController extends Controller
                 ->where('deleted_from_home', 0)
                 ->where('is_dropdown_show', 0)
                 ->exists();
-
             if ($existsNonDropdown) {
                 $errors[] = "Vendor name '{$vendorName}' already exists at index $index.";
                 continue;
@@ -121,14 +147,12 @@ class VendorTemplateController extends Controller
 
             // Handle logo
             $logoPath = null;
-            if ($request->hasFile("vendors.$index.logo_url")) {
-                $file = $request->file("vendors.$index.logo_url");
-                $logoPath = $file->store('vendor_logos', 'public');
+            if ($vendor['logo_file']) {
+                $logoPath = $vendor['logo_file']->store('vendor_logos', 'public');
             }
-
             $logoUrl = $logoPath
                 ? asset("storage/{$logoPath}")
-                : parse_url($vendor['logo_url'] ?? '', PHP_URL_PATH);
+                : (isset($vendor['logo_url']) ? parse_url($vendor['logo_url'], PHP_URL_PATH) : null);
 
             // Shared data
             $baseData = [
