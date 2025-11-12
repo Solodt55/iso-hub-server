@@ -34,7 +34,7 @@ class RolePermissionController extends Controller
         //     return $userPermission;
         // }
 
-        $roles = $this->RolePermissionService->getAllRole();
+        $roles = Role::with('permissions')->get();
 
         return ApiResponseService::success('Roles retrieved successfully', $roles);
     }

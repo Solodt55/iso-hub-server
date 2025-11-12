@@ -54,7 +54,7 @@ class JotFormService
             'business_contact_number' => $request->business_contact_number ?? '',
             'business_start_date' => !empty($request->business_start_date) ? $request->business_start_date : null,
             'business_tax_id' => $request->business_tax_id ?? '',
-            'business_profile_business_type' => json_encode($request->business_profile_business_type) ?? '',
+            'business_profile_business_type' => $request->business_profile_business_type ?? '',
 
             'bank_name' => $request->bank_name ?? '',
             'aba_routing' => $request->aba_routing ?? '',
@@ -115,7 +115,7 @@ class JotFormService
             'auto_settle_time' => $request->auto_settle_time ?? '',
             'auto_settle_type' => $request->auto_settle_type ?? '',
             'add_tips_to_account' => $request->add_tips_to_account ?? '',
-            'tip_amounts' => json_encode($request->tip_amounts ?? []),
+            'tip_amounts' => $request->tip_amounts ?? '[]',
             'business_products_sold' => $request->business_products_sold ?? '',
             'business_return_policy' => $request->business_return_policy ?? '',
             'location_description' => $request->location_description ?? '',
